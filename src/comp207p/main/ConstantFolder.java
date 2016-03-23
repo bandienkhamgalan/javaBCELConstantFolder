@@ -53,40 +53,92 @@ public class ConstantFolder
 			Method m = methods[index];
 			MethodGen mg = new MethodGen(m, cgen.getClassName(), cpgen);
 
-			InstructionList il = mg.getInstructionList();
-			InstructionFinder finder = new InstructionFinder(il);
 			
-			Iterator itr = finder.search("ldc ldc ArithmeticInstruction");
-			while(itr.hasNext()) {
-				InstructionHandle[] instructions = (InstructionHandle[])itr.next();
+			while(true) {
+				System.out.println("running while");
+				InstructionList il = mg.getInstructionList();
+				System.out.println(il);
 
-				// fold constants
-				int foldedConstantIndex = -1;
-				switch(instructions[2].getInstruction().getName()) {
-					case "iadd":
-						System.out.println("adding two constants");
-						LDC operandAInstruction = (LDC)(instructions[0].getInstruction());
-						int operandA = (int)operandAInstruction.getValue(cpgen);
-						LDC operandBInstruction = (LDC)(instructions[1].getInstruction());
-						int operandB = (int)operandBInstruction.getValue(cpgen);
-						foldedConstantIndex = cpgen.addInteger(operandA + operandB);
-						System.out.printf("%d + %d = %d\n", operandA, operandB, operandA + operandB);
-						System.out.printf("added new constant at index %d\n", foldedConstantIndex);
-						break;
-				}
+				InstructionFinder finder = new InstructionFinder(il);
+				Iterator itr = finder.search("ldc ldc ArithmeticInstruction");
 
-				// insert new stack push instruction
-				il.insert(instructions[0], new LDC(foldedConstantIndex));
+				if(!itr.hasNext())
+					break;
 
-				// remove stack push instructions
-				try {
-					il.delete(instructions[0].getInstruction(), instructions[2].getInstruction());
-				} catch(TargetLostException e) {
+				while(itr.hasNext()) {
+					InstructionHandle[] instructions = (InstructionHandle[])itr.next();
 
+					// fold constants
+					int foldedConstantIndex = -1;
+					LDC operandAInstruction = (LDC)(instructions[0].getInstruction());
+					Object operandA = operandAInstruction.getValue(cpgen);
+					LDC operandBInstruction = (LDC)(instructions[1].getInstruction());
+					Object operandB = operandBInstruction.getValue(cpgen);
+					switch(instructions[2].getInstruction().getName()) {
+						case "iadd":
+							foldedConstantIndex = cpgen.addInteger((int)operandA + (int)operandB);
+							break;
+						case "fadd":
+							foldedConstantIndex = cpgen.addFloat((float)operandA + (float)operandB);
+							break;
+						case "dadd":
+							foldedConstantIndex = cpgen.addDouble((double)operandA + (double)operandB);
+							break;
+						case "ladd":
+							foldedConstantIndex = cpgen.addLong((long)operandA + (long)operandB);
+							break;
+						case "isub":
+							foldedConstantIndex = cpgen.addInteger((int)operandA - (int)operandB);
+							break;
+						case "fsub":
+							foldedConstantIndex = cpgen.addFloat((float)operandA - (float)operandB);
+							break;
+						case "dsub":
+							foldedConstantIndex = cpgen.addDouble((double)operandA - (double)operandB);
+							break;
+						case "lsub":
+							foldedConstantIndex = cpgen.addLong((long)operandA - (long)operandB);
+							break;
+						case "imul":
+							foldedConstantIndex = cpgen.addInteger((int)operandA * (int)operandB);
+							break;
+						case "fmul":
+							foldedConstantIndex = cpgen.addFloat((float)operandA * (float)operandB);
+							break;
+						case "dmul":
+							foldedConstantIndex = cpgen.addDouble((double)operandA * (double)operandB);
+							break;
+						case "lmul":
+							foldedConstantIndex = cpgen.addLong((long)operandA * (long)operandB);
+							break;
+						case "idiv":
+							foldedConstantIndex = cpgen.addInteger((int)operandA / (int)operandB);
+							break;
+						case "fdiv":
+							foldedConstantIndex = cpgen.addFloat((float)operandA / (float)operandB);
+							break;
+						case "ddiv":
+							foldedConstantIndex = cpgen.addDouble((double)operandA / (double)operandB);
+							break;
+						case "ldiv":
+							foldedConstantIndex = cpgen.addLong((long)operandA / (long)operandB);
+							break;
+					}
+
+					// insert new stack push instruction
+					il.insert(instructions[0], new LDC(foldedConstantIndex));
+
+					// remove stack push instructions
+					try {
+						for( InstructionHandle i : instructions )
+							il.delete(i);
+					} catch(TargetLostException e) {
+
+					}
 				}
 			}
 
-			mg.stripAttributes(true)
+			mg.stripAttributes(true);
 			optimizedMethods[index] = mg.getMethod();
 		}
 
