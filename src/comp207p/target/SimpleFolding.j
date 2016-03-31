@@ -17,8 +17,6 @@
 	ldc 67
 	ldc 12345
     iadd
-    ldc 10
-    iadd
     invokevirtual java/io/PrintStream/println(I)V
 	return
 .end method
