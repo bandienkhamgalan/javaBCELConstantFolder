@@ -355,41 +355,41 @@ public class ConstantFolder
 							foldedInstruction = new LDC2_W(cpgen.addLong(operandA.longValue() + operandB.longValue()));
 							break;
 						case "isub":
-							foldedConstantIndex = new LDC(cpgen.addInteger(operandA.intValue() - operandB.intValue()));
+							foldedInstruction = new LDC(cpgen.addInteger(operandA.intValue() - operandB.intValue()));
 							break;
 						case "fsub":
-							foldedConstantIndex = new LDC(cpgen.addFloat((float)operandA - (float)operandB);
+							foldedInstruction = new LDC(cpgen.addFloat(operandA.floatValue() - operandB.floatValue()));
 							break;
 						case "dsub":
-							foldedConstantIndex = cpgen.addDouble((double)operandA - (double)operandB);
+							foldedInstruction = new LDC2_W(cpgen.addDouble(operandA.doubleValue() - operandB.doubleValue()));
 							break;
 						case "lsub":
-							foldedConstantIndex = cpgen.addLong((long)operandA - (long)operandB);
+							foldedInstruction = new LDC2_W(cpgen.addLong(operandA.longValue() - operandB.longValue()));
 							break;
 						case "imul":
-							foldedConstantIndex = cpgen.addInteger((int)operandA * (int)operandB);
+							foldedInstruction = new LDC(cpgen.addInteger(operandA.intValue() * operandB.intValue()));
 							break;
 						case "fmul":
-							foldedConstantIndex = cpgen.addFloat((float)operandA * (float)operandB);
+							foldedInstruction = new LDC(cpgen.addFloat(operandA.floatValue() * operandB.floatValue()));
 							break;
 						case "dmul":
-							foldedConstantIndex = cpgen.addDouble((double)operandA * (double)operandB);
+							foldedInstruction = new LDC2_W(cpgen.addDouble(operandA.doubleValue() * operandB.doubleValue()));
 							break;
 						case "lmul":
-							foldedConstantIndex = cpgen.addLong((long)operandA * (long)operandB);
+							foldedInstruction = new LDC2_W(cpgen.addLong(operandA.longValue() * operandB.longValue()));
 							break;
 						case "idiv":
-							foldedConstantIndex = cpgen.addInteger((int)operandA / (int)operandB);
+							foldedInstruction = new LDC(cpgen.addInteger(operandA.intValue() / operandB.intValue()));
 							break;
 						case "fdiv":
-							foldedConstantIndex = cpgen.addFloat((float)operandA / (float)operandB);
+							foldedInstruction = new LDC(cpgen.addFloat(operandA.floatValue() / operandB.floatValue()));
 							break;
 						case "ddiv":
-							foldedConstantIndex = cpgen.addDouble((double)operandA / (double)operandB);
+							foldedInstruction = new LDC2_W(cpgen.addDouble(operandA.doubleValue() / operandB.doubleValue()));
 							break;
 						case "ldiv":
-							foldedConstantIndex = cpgen.addLong((long)operandA / (long)operandB);
-							break; */
+							foldedInstruction = new LDC2_W(cpgen.addLong(operandA.longValue() / operandB.longValue()));
+							break;
 					}
 
 					// insert new stack push instruction
