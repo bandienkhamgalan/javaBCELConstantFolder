@@ -1,0 +1,41 @@
+push 10
+store a
+push 10
+store b
+
+load b
+store a
+...
+push 4
+push 5
+imul
+push a
+isub
+store b
+
+get goto blocks
+
+for each variable:
+  get constant intervals:
+    x <- next occurrence of store/iinc
+    if x in goto block:
+      interval TO start of goto block
+    else
+      interval TO x
+
+
+  get initial value for dictionary (match push=>store)
+
+  for each interval:
+    while not exhausted:
+      fold each push=>push=>arithmetic:
+        insert ldc
+        delete old 3 instructions
+        if instruction after inserted ldc is store:
+          update dictionary
+
+
+if loop condition false, goto 41
+...loop body..
+goto 38
+...

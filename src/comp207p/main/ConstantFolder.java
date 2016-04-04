@@ -53,10 +53,9 @@ public class ConstantFolder
 		for( int index = 0 ; index < methods.length ; index++ ) {
 			Method m = methods[index];
 			MethodGen mg = new MethodGen(m, cgen.getClassName(), cpgen);
+			InstructionList il = mg.getInstructionList();
 
 			while(true) {
-				InstructionList il = mg.getInstructionList();
-
 				InstructionFinder finder = new InstructionFinder(il);
 				Iterator itr = finder.search("ldc ldc ArithmeticInstruction");
 
@@ -155,246 +154,272 @@ public class ConstantFolder
 		for( int index = 0 ; index < methods.length ; index++ ) {
 			Method m = methods[index];
 			MethodGen mg = new MethodGen(m, cgen.getClassName(), cpgen);
-
 			InstructionList il = mg.getInstructionList();
-			InstructionFinder finder = new InstructionFinder(il);
-			System.out.printf("METHOD %s\n", mg.getName());
+
+			/* System.out.printf("METHOD %s\n", mg.getName());
 			System.out.println("__before__");
-			System.out.println(il);
+			System.out.println(il); */
 
-			/* BUILD CONSTANT VARIABLES DICTIONARY */
 			HashMap constants = new HashMap<Integer, Number>();	// map from variable indices to values
-			Iterator itr = finder.search("PushInstruction StoreInstruction");
-			while(itr.hasNext()) {
-				InstructionHandle[] instructions = (InstructionHandle[])itr.next();
 
-				PushInstruction pushInstruction = (PushInstruction)instructions[0].getInstruction();
-				StoreInstruction storeInstruction = (StoreInstruction)instructions[1].getInstruction();
+			boolean performedOptimization;
+			do {
+				performedOptimization = false;
 
-				class VariableFinder implements CodeConstraint {
-					public boolean checkCode(InstructionHandle[] match) {
-						Instruction instruction = match[0].getInstruction();
-						if(instruction instanceof IINC) {
-							IINC incrementInstruction = (IINC)instruction;
-							return incrementInstruction.getIndex() == storeInstruction.getIndex();
-						} else if(instruction instanceof StoreInstruction) {
-							StoreInstruction storeInstructionChecking = (StoreInstruction)instruction;
-							return storeInstructionChecking.getIndex() == storeInstruction.getIndex();
-						} else {
-							return false;
+				/* BUILD/UPDATE CONSTANT VARIABLES DICTIONARY */
+				InstructionFinder finder = new InstructionFinder(il);
+				Iterator itr = finder.search("PushInstruction StoreInstruction");
+				while(itr.hasNext()) {
+					InstructionHandle[] instructions = (InstructionHandle[])itr.next();
+
+					PushInstruction pushInstruction = (PushInstruction)instructions[0].getInstruction();
+					StoreInstruction storeInstruction = (StoreInstruction)instructions[1].getInstruction();
+
+					class VariableFinder implements CodeConstraint {
+						public boolean checkCode(InstructionHandle[] match) {
+							Instruction instruction = match[0].getInstruction();
+							if(instruction instanceof IINC) {
+								IINC incrementInstruction = (IINC)instruction;
+								return incrementInstruction.getIndex() == storeInstruction.getIndex();
+							} else if(instruction instanceof StoreInstruction) {
+								StoreInstruction storeInstructionChecking = (StoreInstruction)instruction;
+								return storeInstructionChecking.getIndex() == storeInstruction.getIndex();
+							} else {
+								return false;
+							}
+						}
+					}
+
+					Iterator storeInstructionIterator = finder.search("StoreInstruction | iinc", new VariableFinder());
+
+					int counter = 0;
+					while(storeInstructionIterator.hasNext()) {
+						storeInstructionIterator.next();
+						counter++;
+					}
+
+					if(counter == 1) {
+						// found a constant variable, add to dictionary
+						if(pushInstruction instanceof ConstantPushInstruction) {
+							ConstantPushInstruction constantPushInstruction = (ConstantPushInstruction)pushInstruction;
+							constants.put(storeInstruction.getIndex(), constantPushInstruction.getValue());
+						} else if(pushInstruction instanceof LoadInstruction) {
+							LoadInstruction loadInstruction = (LoadInstruction)pushInstruction;
+							int variableIndex = loadInstruction.getIndex();
+							if(constants.containsKey(variableIndex))
+								constants.put(storeInstruction.getIndex(), constants.get(variableIndex));
+						} else if(pushInstruction instanceof LDC) {
+							System.out.println("ldc constant");
+							LDC loadConstantInstruction = (LDC)pushInstruction;
+							System.out.println(cpgen);
+							System.out.println(loadConstantInstruction.getIndex());
+							System.out.println(loadConstantInstruction.getType(cpgen));
+							constants.put(storeInstruction.getIndex(), loadConstantInstruction.getValue(cpgen));
+						} else if(pushInstruction instanceof LDC2_W) {
+							System.out.println("ldc2_w constant");
+							LDC2_W loadConstantInstruction = (LDC2_W)pushInstruction;
+							constants.put(storeInstruction.getIndex(), loadConstantInstruction.getValue(cpgen));
 						}
 					}
 				}
 
-				Iterator storeInstructionIterator = finder.search("StoreInstruction | iinc", new VariableFinder());
+				// PERFORM CONVERSION
+				itr = finder.search("PushInstruction ConversionInstruction");
+				while(itr.hasNext()) {
+					InstructionHandle[] instructions = (InstructionHandle[])itr.next();
+					PushInstruction pushInstruction = (PushInstruction)instructions[0].getInstruction();
+					ConversionInstruction conversionInstruction = (ConversionInstruction)instructions[1].getInstruction();
+					Object operand = new Object();
+					boolean isConstantFolding = true;
 
-				int counter = 0;
-				while(storeInstructionIterator.hasNext()) {
-					storeInstructionIterator.next();
-					counter++;
-				}
-
-				if(counter == 1) {
-					// found a constant variable, add to dictionary
-					if(pushInstruction instanceof ConstantPushInstruction) {
-						ConstantPushInstruction constantPushInstruction = (ConstantPushInstruction)pushInstruction;
-						constants.put(storeInstruction.getIndex(), constantPushInstruction.getValue());
-					} else if(pushInstruction instanceof LoadInstruction) {
-						LoadInstruction loadInstruction = (LoadInstruction)pushInstruction;
-						int variableIndex = loadInstruction.getIndex();
-						if(constants.containsKey(variableIndex))
-							constants.put(storeInstruction.getIndex(), constants.get(variableIndex));
-					} else if(pushInstruction instanceof LDC) {
-						LDC loadConstantInstruction = (LDC)pushInstruction;
-						constants.put(storeInstruction.getIndex(), loadConstantInstruction.getValue(cpgen));
-					} else if(pushInstruction instanceof LDC2_W) {
-						LDC2_W loadConstantInstruction = (LDC2_W)pushInstruction;
-						constants.put(storeInstruction.getIndex(), loadConstantInstruction.getValue(cpgen));
-					}
-				}
-			}
-
-			//PERFORM CONVERSION
-
-			itr = finder.search("PushInstruction ConversionInstruction");
-			while(itr.hasNext()) {
-				InstructionHandle[] instructions = (InstructionHandle[])itr.next();
-
-				PushInstruction pushInstruction = (PushInstruction)instructions[0].getInstruction();
-				ConversionInstruction conversionInstruction = (ConversionInstruction)instructions[1].getInstruction();
-
-				Object operand = new Object();
-				boolean isConstantFolding = true;
-
-				if(pushInstruction instanceof LDC) {
-					LDC loadConstantInstruction = (LDC)pushInstruction;
-					operand = loadConstantInstruction.getValue(cpgen);
-				} else if(pushInstruction instanceof LDC2_W) {
-					LDC2_W loadConstantInstruction = (LDC2_W)pushInstruction;
-					operand = loadConstantInstruction.getValue(cpgen);
-				} else if(pushInstruction instanceof ConstantPushInstruction) {
-					ConstantPushInstruction constantPushInstruction = (ConstantPushInstruction)pushInstruction;
-					operand = constantPushInstruction.getValue();
-				} else if(pushInstruction instanceof LoadInstruction) {
-					LoadInstruction loadInstruction = (LoadInstruction)pushInstruction;
-					if(constants.containsKey(loadInstruction.getIndex())) {
-						operand = constants.get(loadInstruction.getIndex());
-					} else {
-						isConstantFolding = false;
-						break;
-					}
-				}
-
-				if(!isConstantFolding)
-					continue;
-
-				Instruction foldedInstruction;
-				Number realOperand = (Number)operand;
-				switch(conversionInstruction.getName()) {
-					case "d2f":
-						foldedInstruction = new FCONST(realOperand.floatValue());
-						break;
-					case "i2d":
-						foldedInstruction = new DCONST(realOperand.intValue());
-						break;
-					default:
-						foldedInstruction = new ICONST(42);
-						break;
-				}
-
-				// insert new stack push instruction
-				il.insert(instructions[0], foldedInstruction);
-
-				// remove stack push instructions
-				try {
-					for( InstructionHandle i : instructions )
-						il.delete(i);
-				} catch(TargetLostException e) {
-
-				}
-
-
-			}
-
-			// PERFORM FOLDING
-			finder = new InstructionFinder(il);
-			itr = finder.search("PushInstruction PushInstruction ArithmeticInstruction");
-			while(itr.hasNext()) {
-				InstructionHandle[] instructions = (InstructionHandle[])itr.next();
-
-				
-				/*// debug print
-				for(InstructionHandle i : instructions )
-					System.out.println(i); */
-
-				Object[] operands = new Object[2];
-				boolean isConstantFolding = true;
-				for( int j = 0 ; j < 2 ; j++ ) {
-					// iterate over two push instructions
-					PushInstruction pushInstruction = (PushInstruction)instructions[j].getInstruction();
 					if(pushInstruction instanceof LDC) {
 						LDC loadConstantInstruction = (LDC)pushInstruction;
-						operands[j] = loadConstantInstruction.getValue(cpgen);
+						operand = loadConstantInstruction.getValue(cpgen);
 					} else if(pushInstruction instanceof LDC2_W) {
 						LDC2_W loadConstantInstruction = (LDC2_W)pushInstruction;
-						operands[j] = loadConstantInstruction.getValue(cpgen);
+						operand = loadConstantInstruction.getValue(cpgen);
 					} else if(pushInstruction instanceof ConstantPushInstruction) {
 						ConstantPushInstruction constantPushInstruction = (ConstantPushInstruction)pushInstruction;
-						operands[j] = constantPushInstruction.getValue();
+						operand = constantPushInstruction.getValue();
 					} else if(pushInstruction instanceof LoadInstruction) {
 						LoadInstruction loadInstruction = (LoadInstruction)pushInstruction;
 						if(constants.containsKey(loadInstruction.getIndex())) {
-							operands[j] = constants.get(loadInstruction.getIndex());
+							operand = constants.get(loadInstruction.getIndex());
 						} else {
 							isConstantFolding = false;
 							break;
 						}
 					}
+
+					if(!isConstantFolding)
+						continue;
+
+					Number realOperand = (Number)operand;
+					int foldedConstantIndex = -1;
+					Instruction foldedInstruction = null;
+					switch(conversionInstruction.getName()) {
+						case "d2f":
+						case "i2f":
+						case "l2f":
+							foldedInstruction = new LDC(cpgen.addFloat(realOperand.floatValue()));
+							break;
+						case "i2d":
+						case "l2d":
+						case "f2d":
+							foldedInstruction = new LDC2_W(cpgen.addDouble(realOperand.doubleValue()));
+							break;
+						case "d2l":
+						case "f2l":
+						case "i2l":
+							foldedInstruction = new LDC2_W(cpgen.addLong(realOperand.longValue()));
+							break;
+						case "d2i":
+						case "f2i":
+						case "l2i":
+							foldedInstruction = new LDC2_W(cpgen.addInteger(realOperand.intValue()));
+							break;
+					}
+
+					// insert new stack push instruction
+					if(foldedInstruction != null) {
+						performedOptimization = true;
+
+						il.insert(instructions[0], foldedInstruction);
+
+						// remove stack push instructions
+						try {
+							for( InstructionHandle i : instructions )
+								il.delete(i);
+						} catch(TargetLostException e) { }
+					}
 				}
 
-				if(!isConstantFolding)
-					continue;
+				// PERFORM NEGATION
 
-				Object operandA = operands[0];
-				Object operandB = operands[1];
+				/* todo */
 
-				int foldedConstantIndex = -1;
-				switch(instructions[2].getInstruction().getName()) {
-					case "iadd":
-						foldedConstantIndex = cpgen.addInteger((int)operandA + (int)operandB);
-						break;
-					case "fadd":
-						foldedConstantIndex = cpgen.addFloat((float)operandA + (float)operandB);
-						break;
-					case "dadd":
-						foldedConstantIndex = cpgen.addDouble((double)operandA + (double)operandB);
-						break;
-					case "ladd":
-						foldedConstantIndex = cpgen.addLong((long)operandA + (long)operandB);
-						break;
-					case "isub":
-						foldedConstantIndex = cpgen.addInteger((int)operandA - (int)operandB);
-						break;
-					case "fsub":
-						foldedConstantIndex = cpgen.addFloat((float)operandA - (float)operandB);
-						break;
-					case "dsub":
-						foldedConstantIndex = cpgen.addDouble((double)operandA - (double)operandB);
-						break;
-					case "lsub":
-						foldedConstantIndex = cpgen.addLong((long)operandA - (long)operandB);
-						break;
-					case "imul":
-						foldedConstantIndex = cpgen.addInteger((int)operandA * (int)operandB);
-						break;
-					case "fmul":
-						foldedConstantIndex = cpgen.addFloat((float)operandA * (float)operandB);
-						break;
-					case "dmul":
-						foldedConstantIndex = cpgen.addDouble((double)operandA * (double)operandB);
-						break;
-					case "lmul":
-						foldedConstantIndex = cpgen.addLong((long)operandA * (long)operandB);
-						break;
-					case "idiv":
-						foldedConstantIndex = cpgen.addInteger((int)operandA / (int)operandB);
-						break;
-					case "fdiv":
-						foldedConstantIndex = cpgen.addFloat((float)operandA / (float)operandB);
-						break;
-					case "ddiv":
-						foldedConstantIndex = cpgen.addDouble((double)operandA / (double)operandB);
-						break;
-					case "ldiv":
-						foldedConstantIndex = cpgen.addLong((long)operandA / (long)operandB);
-						break;
+				// PERFORM FOLDING
+				finder = new InstructionFinder(il);
+				itr = finder.search("PushInstruction PushInstruction ArithmeticInstruction");
+				while(itr.hasNext()) {
+					InstructionHandle[] instructions = (InstructionHandle[])itr.next();
+
+					/*// debug print
+					for(InstructionHandle i : instructions )
+						System.out.println(i); */
+
+					Object[] operands = new Object[2];
+					boolean isConstantFolding = true;
+					for( int j = 0 ; j < 2 ; j++ ) {
+						// iterate over two push instructions
+						PushInstruction pushInstruction = (PushInstruction)instructions[j].getInstruction();
+						if(pushInstruction instanceof LDC) {
+							LDC loadConstantInstruction = (LDC)pushInstruction;
+							operands[j] = loadConstantInstruction.getValue(cpgen);
+						} else if(pushInstruction instanceof LDC2_W) {
+							LDC2_W loadConstantInstruction = (LDC2_W)pushInstruction;
+							operands[j] = loadConstantInstruction.getValue(cpgen);
+						} else if(pushInstruction instanceof ConstantPushInstruction) {
+							ConstantPushInstruction constantPushInstruction = (ConstantPushInstruction)pushInstruction;
+							operands[j] = constantPushInstruction.getValue();
+						} else if(pushInstruction instanceof LoadInstruction) {
+							LoadInstruction loadInstruction = (LoadInstruction)pushInstruction;
+							if(constants.containsKey(loadInstruction.getIndex())) {
+								operands[j] = constants.get(loadInstruction.getIndex());
+							} else {
+								isConstantFolding = false;
+								break;
+							}
+						}
+					}
+
+					if(!isConstantFolding)
+						continue;
+
+					Number operandA = (Number)operands[0];
+					Number operandB = (Number)operands[1];
+
+					Instruction foldedInstruction = null;
+					int foldedConstantIndex = -1;
+					switch(instructions[2].getInstruction().getName()) {
+						case "iadd":
+							foldedInstruction = new LDC(cpgen.addInteger(operandA.intValue() + operandB.intValue()));
+							break;
+						case "fadd":
+							foldedInstruction = new LDC(cpgen.addFloat(operandA.floatValue() + operandB.floatValue()));
+							break;
+						case "dadd":
+							foldedInstruction = new LDC2_W(cpgen.addDouble(operandA.doubleValue() + operandB.doubleValue()));
+							break;
+						case "ladd":
+							foldedInstruction = new LDC2_W(cpgen.addLong(operandA.longValue() + operandB.longValue()));
+							break;
+						case "isub":
+							foldedConstantIndex = new LDC(cpgen.addInteger(operandA.intValue() - operandB.intValue()));
+							break;
+						case "fsub":
+							foldedConstantIndex = new LDC(cpgen.addFloat((float)operandA - (float)operandB);
+							break;
+						case "dsub":
+							foldedConstantIndex = cpgen.addDouble((double)operandA - (double)operandB);
+							break;
+						case "lsub":
+							foldedConstantIndex = cpgen.addLong((long)operandA - (long)operandB);
+							break;
+						case "imul":
+							foldedConstantIndex = cpgen.addInteger((int)operandA * (int)operandB);
+							break;
+						case "fmul":
+							foldedConstantIndex = cpgen.addFloat((float)operandA * (float)operandB);
+							break;
+						case "dmul":
+							foldedConstantIndex = cpgen.addDouble((double)operandA * (double)operandB);
+							break;
+						case "lmul":
+							foldedConstantIndex = cpgen.addLong((long)operandA * (long)operandB);
+							break;
+						case "idiv":
+							foldedConstantIndex = cpgen.addInteger((int)operandA / (int)operandB);
+							break;
+						case "fdiv":
+							foldedConstantIndex = cpgen.addFloat((float)operandA / (float)operandB);
+							break;
+						case "ddiv":
+							foldedConstantIndex = cpgen.addDouble((double)operandA / (double)operandB);
+							break;
+						case "ldiv":
+							foldedConstantIndex = cpgen.addLong((long)operandA / (long)operandB);
+							break; */
+					}
+
+					// insert new stack push instruction
+					if(foldedInstruction != null) {
+						performedOptimization = true;
+
+						il.insert(instructions[0], foldedInstruction);
+
+						// remove stack push instructions
+						try {
+							for( InstructionHandle i : instructions )
+								il.delete(i);
+						} catch(TargetLostException e) { }
+					}
 				}
+			} while(performedOptimization);
 
-				// insert new stack push instruction
-				il.insert(instructions[0], new LDC(foldedConstantIndex));
-
-				// remove stack push instructions
-				try {
-					for( InstructionHandle i : instructions )
-						il.delete(i);
-				} catch(TargetLostException e) {
-
-				}
-			} 
 
 			mg.stripAttributes(true);
 			optimizedMethods[index] = mg.getMethod();
 
-
-			System.out.println("__after__");
-			System.out.println(il);
+			/* System.out.println("__after__");
+			System.out.println(il); */
 		}
 
 		this.gen.setMethods(optimizedMethods);
         this.gen.setConstantPool(cpgen);
 		this.optimized = gen.getJavaClass();
-	} 
-	
+	}
+
 	public void optimize()
 	{
 		// Implement your optimization here
@@ -403,7 +428,7 @@ public class ConstantFolder
 		constantVariableFolding();
 	}
 
-	
+
 	public void write(String optimisedFilePath)
 	{
 		this.optimize();
