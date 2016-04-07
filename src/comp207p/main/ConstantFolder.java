@@ -787,11 +787,47 @@ public class ConstantFolder {
 	private boolean foldNegations(InstructionList il, ConstantPoolGen cpgen, JumpManager jumpManager, VariableManager variableManager) {
 		debug("Folding negations", 1);
 		InstructionFinder finder = new InstructionFinder(il);
-		boolean performedFolding = false;
+		Iterator itr = finder.search("PushInstruction ArithmeticInstruction");
+		boolean performedOptimization = false;
+		while(itr.hasNext()) {
+			InstructionHandle[] instructions = (InstructionHandle[])itr.next();
 
-		// TODO: folding negation instructions
+			if(jumpManager.destinationsContain(instructions[1].getPosition())) {
+				debug("Skipping 'PushInstruction ArithmeticInstruction' match across jump destination", 2);
+				continue;
+			}
 
-		return performedFolding;
+			Object operand = getValueOfPushInstruction(instructions[0], cpgen, variableManager);
+			if(operand == null)
+				continue;
+
+			Number realOperand = (Number)operand;
+			Instruction operation = (Instruction)instructions[1].getInstruction();
+			Instruction foldedInstruction = null;
+			if(operation instanceof FNEG) {
+				foldedInstruction = new LDC(cpgen.addFloat(-realOperand.floatValue()));
+			} else if(operation instanceof DNEG) {
+				foldedInstruction = new LDC2_W(cpgen.addDouble(-realOperand.doubleValue()));
+			} else if(operation instanceof LNEG) {
+				foldedInstruction = new LDC2_W(cpgen.addLong(-realOperand.longValue()));
+			} else if(operation instanceof INEG) {
+				foldedInstruction = new LDC(cpgen.addInteger(-realOperand.intValue()));
+			}
+
+			// insert new stack push instruction
+			if(foldedInstruction != null) {
+				performedOptimization = true;
+				instructions[0].setInstruction(foldedInstruction);
+
+				// remove stack push instructions
+				try {
+					il.delete(instructions[1]);
+				} catch(TargetLostException e) { }
+			}
+		}
+		
+
+		return performedOptimization;
 	}
 
 	private Method optimizeMethod(ClassGen cgen, Method m) {
