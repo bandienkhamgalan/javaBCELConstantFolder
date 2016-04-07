@@ -11,19 +11,6 @@ import java.util.HashSet;
 
 import org.apache.bcel.generic.*;
 import org.apache.bcel.classfile.*;
-/*
-import org.apache.bcel.classfile.ClassParser;
-import org.apache.bcel.classfile.Code;
-import org.apache.bcel.classfile.JavaClass;
-import org.apache.bcel.classfile.Method;
-
-import org.apache.bcel.generic.ArithmeticInstruction;
-import org.apache.bcel.generic.ClassGen;
-import org.apache.bcel.generic.MethodGen;
-import org.apache.bcel.generic.ConstantPoolGen;
-import org.apache.bcel.generic.InstructionHandle;
-import org.apache.bcel.generic.InstructionList;
-import org.apache.bcel.generic.TargetLostException; */
 import org.apache.bcel.util.InstructionFinder;
 import org.apache.bcel.util.InstructionFinder.CodeConstraint;
 
@@ -765,7 +752,7 @@ public class ConstantFolder {
 			} else if(instruction instanceof D2L || instruction instanceof F2L || instruction instanceof I2L) {
 				foldedInstruction = new LDC2_W(cpgen.addLong(operand.longValue()));
 			} else if(instruction instanceof D2I || instruction instanceof F2I || instruction instanceof L2I) {
-				foldedInstruction = new LDC2_W(cpgen.addInteger(operand.intValue()));
+				foldedInstruction = new LDC(cpgen.addInteger(operand.intValue()));
 			}
 
 			// insert new stack push instruction
@@ -883,7 +870,10 @@ public class ConstantFolder {
 
 				/* FOLD BINARY ARITHMETIC OPERATIONS */
 				if(foldBinaryArithmeticOperations(il, cpgen, jumpManager, variableManager))
-					performedFolding = performedOptimization = true;				
+					performedFolding = performedOptimization = true;		
+
+				debug(il.toString(), 3);
+				debug(cpgen.toString(), 3);		
 			} while(performedFolding);
 
 			/* RESOLVE BINARY COMPARISONS */
