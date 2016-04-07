@@ -65,6 +65,129 @@ public class ConstantVariableFolding
         return x;
     }
 
+        //test float conversions
+    public int floatMethod1(){
+        float a = 8;
+        int x = (int)a;
+        return x;
+    }
 
+    public long floatMethod2(){
+        float a = 8;
+        long x = (long)a;
+        return x;
+    }
+
+    public double floatMethod3(){
+        float a = 8;
+        double x = (double)a;
+        return x;
+    }
+
+    //test double conversions
+    public int doubleMethod1(){
+        double a = 8;
+        int x = (int)a;
+        return x;
+    }
+
+    public float doubleMethod2(){
+        double a = 8;
+        float x = (float)a;
+        return x;
+    }
+
+    public long doubleMethod3(){
+        double a = 8;
+        long x = (long)a;
+        return x;
+    }
+
+    //test additions
+
+    public int arithmeticInt(){
+        int a = 8;
+        int b = 2;
+        int c = 1;
+
+        int x =  a + b;
+        int y = x - c;
+        int z = y * b;
+        int ret = z/3;
+
+        return ret;
+    }
+
+    public long arithmeticLong(){
+        long a = 8;
+        long b = 2;
+        long c = 1;
+
+        long x =  a + b;
+        long y = x - c;
+        long z = y * b;
+        long ret = z/3;
+    
+        return ret;
+    }
+
+    public float arithmeticFloat(){
+        float a = (float)7.5;
+        float b = (float)2.5;
+        float c = (float)3;
+
+        float x =  a + b;
+        float y = x - c;
+        float z = y * 2;
+        float ret = z/4;
+        return ret;
+    }
+
+    public double arithmeticDouble(){
+        double a = 7.5;
+        double b = 2.5;
+        double c = 3;
+
+        double x =  a + b;
+        double y = x - c;
+        double z = y * 2;
+        double ret = z/4;
+        return ret;
+    }
+
+    public int arithmeticComplex(){
+        int a = 7;
+        int b = 2;
+        int c = 1;
+
+        int x = a + (3 * c) - 15;
+        int y = ((x * 3 + 20) / 5) + 99;
+        return y;
+    }
+
+    //test comparisons() and if statements
+    public boolean comparison1(){
+        int a = 15;
+        int b = 1;
+        int c = 1;
+        int x;
+        int y;
+
+        if(a < b)
+            x = 10;
+        else
+            x = 30;
+
+        if(b == c)
+            y = 30;
+        else 
+            y = 5;
+
+        if(a > b && x >= y)
+            return x == y;
+        else 
+            return x < y;
+
+    }
 
 }
