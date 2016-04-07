@@ -442,7 +442,7 @@ public class ConstantFolder {
 			LoadInstruction loadInstruction = (LoadInstruction)pushInstruction;
 			int variableIndex = loadInstruction.getIndex();
 			Object value = variableManager.variableValueAtPosition(variableIndex, position);
-			if(value instanceof Object)
+			if(value instanceof Number)
 				return value;
 		} else if(pushInstruction instanceof LDC) {
 			LDC constantLoadInstruction = (LDC)pushInstruction;
@@ -838,7 +838,6 @@ public class ConstantFolder {
 		debug(String.format("\nOptimizing METHOD %s", mg.getName()), 1);
 		debug("__before__", 2);
 		debug(il.toString(), 2);
-
 
 		HashSet<Integer> localVariableIndices;
 		JumpManager jumpManager;
