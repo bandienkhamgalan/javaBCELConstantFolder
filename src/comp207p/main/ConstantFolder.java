@@ -373,9 +373,6 @@ public class ConstantFolder {
 						il.delete(instructions[0], gotoInstruction.getTarget().getPrev());
 					} catch(TargetLostException e) { }
 
-					il.setPositions();
-					jumpManager = initializeJumpManagerWithJumps(il);
-
 					debug("Removed unreachable code:", 3);
 					debug(il.toString(), 3);
 				}
@@ -435,7 +432,7 @@ public class ConstantFolder {
 	private Object getValueOfPushInstruction(InstructionHandle instruction, ConstantPoolGen cpgen, VariableManager variableManager) {
 		PushInstruction pushInstruction = (PushInstruction)instruction.getInstruction();
 		int position = instruction.getPosition();
-		
+
 		Object value = null;
 		if(pushInstruction instanceof ConstantPushInstruction) {
 			ConstantPushInstruction constantPushInstruction = (ConstantPushInstruction)pushInstruction;
@@ -642,15 +639,17 @@ public class ConstantFolder {
 				performedOptimization = true;
 
 				if(branch) {
-					il.insert(instructions[0], new GOTO(ifInstruction.getTarget()));
-					il.redirectBranches(instructions[0], instructions[0].getPrev());
+					instructions[2].setInstruction(new GOTO(ifInstruction.getTarget()));
+					il.redirectBranches(instructions[0], instructions[2]);
+					try {
+						il.delete(instructions[0], instructions[1]);
+					} catch(TargetLostException e) { }
 				} else {				
 					il.redirectBranches(instructions[0], instructions[2].getNext());
+					try {
+						il.delete(instructions[0], instructions[2]);
+					} catch(TargetLostException e) { }
 				}
-
-				try {
-					il.delete(instructions[0], instructions[2]);
-				} catch(TargetLostException e) { }
 			}
 		}
 		return performedOptimization;
@@ -699,15 +698,17 @@ public class ConstantFolder {
 				performedOptimization = true;
 
 				if(branch) {
-					il.insert(instructions[0], new GOTO(ifInstruction.getTarget()));
-					il.redirectBranches(instructions[0], instructions[0].getPrev());
+					instructions[1].setInstruction(new GOTO(ifInstruction.getTarget()));
+					il.redirectBranches(instructions[0], instructions[1]);
+					try {
+						il.delete(instructions[0]);
+					} catch(TargetLostException e) { }
 				} else {				
 					il.redirectBranches(instructions[0], instructions[1].getNext());
+					try {
+						il.delete(instructions[0], instructions[1]);
+					} catch(TargetLostException e) { }
 				}
-
-				try {
-					il.delete(instructions[0], instructions[1]);
-				} catch(TargetLostException e) { }
 			}
 		}
 
@@ -715,7 +716,7 @@ public class ConstantFolder {
 	}
 
 	// Returns true on optimization, false on no action
-	private boolean removeUnusedVariables(InstructionList il, HashSet<Integer> localVariableIndices) {
+	private boolean removeUnusedVariables(InstructionList il, HashSet<Integer> localVariableIndices, JumpManager jumpManager) {
 		debug("Removing unused variables from instruction list", 1);
 		boolean performedOptimization = false;
 		for(int varIndex : localVariableIndices) {
@@ -725,8 +726,15 @@ public class ConstantFolder {
 				// unused variable
 				itr = finder.search("PushInstruction StoreInstruction", new VariableFinder(varIndex, 1));
 				while(itr.hasNext()) {
-					performedOptimization = true;
 					InstructionHandle[] instructions = (InstructionHandle[])itr.next();
+
+					if(jumpManager.destinationsContain(instructions[1].getPosition())) {
+						debug("Skipping 'PushInstruction Store' match across jump destination", 2);
+						continue;
+					}
+
+					performedOptimization = true;
+
 					il.redirectBranches(instructions[0], instructions[1].getNext());
 					try {
 						il.delete(instructions[0], instructions[1]);
@@ -900,10 +908,10 @@ public class ConstantFolder {
 			debug(il.toString(), 3);
 
 			/* REMOVE UNUSED VARIABLES FROM INSTRUCTION LIST */
-			if(removeUnusedVariables(il, localVariableIndices))
+			if(removeUnusedVariables(il, localVariableIndices, jumpManager))
 				performedOptimization = true;
 			
-			il.setPositions();
+			// il.setPositions();
 
 			debug(il.toString(), 3);
 		} while(performedOptimization);
