@@ -638,10 +638,13 @@ public class ConstantFolder {
 			if(canHandle) {
 				performedOptimization = true;
 
-				if(branch)
+				if(branch) {
 					il.insert(instructions[0], new GOTO(ifInstruction.getTarget()));
-				
-				il.redirectBranches(instructions[0], instructions[2].getNext());
+					il.redirectBranches(instructions[0], instructions[0].getPrev());
+				} else {				
+					il.redirectBranches(instructions[0], instructions[2].getNext());
+				}
+
 				try {
 					il.delete(instructions[0], instructions[2]);
 				} catch(TargetLostException e) { }
@@ -694,9 +697,11 @@ public class ConstantFolder {
 
 				if(branch) {
 					il.insert(instructions[0], new GOTO(ifInstruction.getTarget()));
+					il.redirectBranches(instructions[0], instructions[0].getPrev());
+				} else {				
+					il.redirectBranches(instructions[0], instructions[1].getNext());
 				}
-				
-				il.redirectBranches(instructions[0], instructions[1].getNext());
+
 				try {
 					il.delete(instructions[0], instructions[1]);
 				} catch(TargetLostException e) { }
