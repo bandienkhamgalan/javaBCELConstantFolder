@@ -131,9 +131,42 @@ public class ConstantVariableFoldingTest {
     }
 
     @Test 
+    public void testComparison3(){
+        assertEquals(true, cvf.comparison3());
+    }
+
+    @Test 
     public void testNegation1(){
         assertEquals(true, cvf.negation1());
     }
+
+    @Test 
+    public void testWhileLoop1(){
+        assertEquals(29, cvf.whileLoop1());
+    }
+
+    @Test 
+    public void testDoLoop1(){
+        assertEquals(-11, cvf.doLoop1());
+    }
+
+    @Test 
+    public void testForLoop1(){
+        assertEquals(5, cvf.forLoop1(), 0.000001);
+    }
+
+    @Test 
+    public void testNestedLooping(){
+        assertEquals(22, cvf.nestedLooping());
+    }
+
+    // @Test 
+    // public void testcaseStatement(){
+    //     assertEquals("four", cvf.caseStatement());
+    // }
+
+
+
 
 
 

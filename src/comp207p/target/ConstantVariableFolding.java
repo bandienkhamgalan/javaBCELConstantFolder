@@ -215,9 +215,8 @@ public class ConstantVariableFolding
 
     }
 
-
-    //test negations
-    public boolean negation1(){
+    //test comparisons and if statements
+    public boolean comparison3(){
         int a = 3;
         int b = 4;
         int c = 5;
@@ -238,4 +237,125 @@ public class ConstantVariableFolding
 
     }
 
+        //test negations
+    public boolean negation1(){
+        int a = 3;
+        double b = 4;
+
+        int c = -a;
+        double d = -b;
+        
+
+        int e = -(-(-c));
+        double f = -(-(-d));
+
+        int x;
+        int y;
+
+        if(a == e)
+            x = 10;
+        else
+            x = 0;
+
+        if(b == f)
+            y = 10;
+        else 
+            y = 5;
+
+        return (x == y);
+
+    }
+
+    public int whileLoop1(){
+        int a = 3;
+        int b = 1;
+        double c = 6;
+
+        int iterator = 0;
+
+        while(iterator < 10){
+            a = a + 1;
+            c = c + 1;
+            iterator++;
+        };
+
+        int d = a + (int)c;
+
+        return d;
+    }
+
+    public int doLoop1(){
+        int a = 1;
+        float b = (float)20;
+        int i = 0;
+
+        do{
+            a = a + 1;
+            b = b - 1;
+            a = a -1;
+            i++;
+        }while(i < 10);
+
+        int j = a + (int)b;
+        return -j;
+    }
+
+    public float forLoop1(){
+        int a = 1;
+        float b = (float)10;
+
+        for(int i = 0; i < 10; i++){
+            if(a > 5)
+                a = 5;
+            else
+                a++;
+            b--;
+        }
+        return (float)a + b;
+    }
+
+    public int nestedLooping(){
+        int a = 1;
+        int b = -(-a) + 1;
+        int c = 10;
+
+        for(int i = 10; i > 0; i--){
+            if(a < 5){
+                while(b < 5){
+                    a = a + 1;
+                    b = b + 1;
+                }
+                a--;
+            }
+            else{
+                a = a + 2;
+            }
+            b = 1;
+        }
+        return a;
+    }
+
+    public String caseStatement(){
+        int a = 1;
+        int b = 2;
+        int c = -(-a + -b);
+        c = c + 1;
+        String res;
+
+        switch(c){
+            case 1 : res = "one";
+                    break;
+            case 2 : res = "two";
+                    break;
+            case 3 : res = "three";
+                    break;
+            case 4 : res = "four";
+                    break;
+            default : res = "invalid";
+                    break;
+        }
+        return res;
+    }
 }
+
+
