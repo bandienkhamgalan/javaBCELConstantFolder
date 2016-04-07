@@ -1105,9 +1105,6 @@ public class ConstantFolder {
 					Instruction ifInstruction = instructions[2].getInstruction();
 					BranchInstruction branchInstruction = (BranchInstruction)ifInstruction;
 					InstructionHandle target = branchInstruction.getTarget();
-
-					System.out.println(target.getPosition());
-
 					IFGT foldedIfInstruction = new IFGT(target);
 
 					// insert new stack push instruction
@@ -1120,10 +1117,95 @@ public class ConstantFolder {
 						} catch(TargetLostException e) { }
 
 						il.append(instructions[0], foldedIfInstruction);
-						//instructions[1].setInstruction(foldedIfInstruction);
 
 						// remove stack push instructions
 						try {
+							il.delete(instructions[2]);
+						} catch(TargetLostException e) { }
+					}
+				}
+
+				/* PERFORM CMP FOLDING */
+				finder = new InstructionFinder(il);
+				itr = finder.search("PushInstruction PushInstruction (DCMPG|DCMPL|FCMPG|FCMPL|LCMP)");
+				while(itr.hasNext()) {
+					InstructionHandle[] instructions = (InstructionHandle[])itr.next();
+
+					/* // debug print
+					for(InstructionHandle i : instructions )
+						System.out.println(i); */
+
+					if(jumpManager.destinationsContain(new int[]{instructions[1].getPosition(), instructions[2].getPosition()})) {
+						System.out.println("Skipping 'PushInstruction PushInstruction (DCMPG|DCMPL|FCMPG|FCMPL|LCMP)' match across jump destination");
+						continue;
+					}
+
+					Object[] operands = new Object[]{null, null};
+					boolean isConstantFolding = true;
+					for( int j = 0 ; j < 2 ; j++ ) {
+						// iterate over two push instructions
+						PushInstruction pushInstruction = (PushInstruction)instructions[j].getInstruction();
+						if(pushInstruction instanceof LDC) {
+							LDC loadConstantInstruction = (LDC)pushInstruction;
+							operands[j] = loadConstantInstruction.getValue(cpgen);
+						} else if(pushInstruction instanceof LDC2_W) {
+							LDC2_W loadConstantInstruction = (LDC2_W)pushInstruction;
+							operands[j] = loadConstantInstruction.getValue(cpgen);
+						} else if(pushInstruction instanceof ConstantPushInstruction) {
+							ConstantPushInstruction constantPushInstruction = (ConstantPushInstruction)pushInstruction;
+							operands[j] = constantPushInstruction.getValue();
+						} else if(pushInstruction instanceof LoadInstruction) {
+							LoadInstruction loadInstruction = (LoadInstruction)pushInstruction;
+							Object value = variableManager.variableValueAtPosition(loadInstruction.getIndex(), instructions[j].getPosition());
+							if(value instanceof Object)
+								operands[j] = value;
+						}
+					}
+
+					if(operands[0] == null || operands[1] == null)
+						continue;
+
+					Number operandA = (Number)operands[0];
+					Number operandB = (Number)operands[1];
+
+					Instruction foldedInstruction = null;
+					int foldedConstantIndex = -1;
+					switch(instructions[2].getInstruction().getName()) {
+						case "dcmpg":
+							Double doubleOperandA = new Double(operandA.doubleValue());
+							Double doubleOperandB = new Double(operandB.doubleValue());
+							foldedInstruction = new ICONST(doubleOperandA.compareTo(doubleOperandB));
+							break;
+						case "dcmpl":
+							Double doubleOperandA1 = new Double(operandA.doubleValue());
+							Double doubleOperandB1 = new Double(operandB.doubleValue());
+							foldedInstruction = new ICONST(-doubleOperandA1.compareTo(doubleOperandB1));
+							break;
+						case "fcmpg":
+							Float floatOperandA = new Float(operandA.floatValue());
+							Float floatOperandB = new Float(operandB.floatValue());
+							foldedInstruction = new ICONST(floatOperandA.compareTo(floatOperandB));
+							break;
+						case "fcmpl":
+							Float floatOperandA1 = new Float(operandA.floatValue());
+							Float floatOperandB1 = new Float(operandB.floatValue());
+							foldedInstruction = new ICONST(-floatOperandA1.compareTo(floatOperandB1));
+							break;
+						case "lcmp":
+							Long longOperandA = new Long(operandA.longValue());
+							Long longOperandB = new Long(operandB.longValue());
+							foldedInstruction = new ICONST(longOperandA.compareTo(longOperandB));
+							break;
+					}
+
+					// insert new stack push instruction
+					if(foldedInstruction != null) {
+						performedOptimization = true;
+						instructions[0].setInstruction(foldedInstruction);
+
+						// remove stack push instructions
+						try {
+							il.delete(instructions[1]);
 							il.delete(instructions[2]);
 						} catch(TargetLostException e) { }
 					}
