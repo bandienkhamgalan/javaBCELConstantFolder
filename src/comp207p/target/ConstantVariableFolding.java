@@ -27,4 +27,44 @@ public class ConstantVariableFolding
         return x > y;
     }
 
+    //test int conversions
+    public long intMethod1(){
+        int a = 8;
+        long x = (long)a;
+        return x;
+    }
+
+    public float intMethod2(){
+        int a = 8;
+        float x = (float)a;
+        return x;
+    }
+
+    public double intMethod3(){
+        int a = 8;
+        double x = (double)a;
+        return x;
+    }
+
+    //test long conversions
+    public int longMethod1(){
+        long a = 8;
+        int x = (int)a;
+        return x;
+    }
+
+    public float longMethod2(){
+        long a = 8;
+        float x = (float)a;
+        return x;
+    }
+
+    public double longMethod3(){
+        long a = 8;
+        double x = (double)a;
+        return x;
+    }
+
+
+
 }

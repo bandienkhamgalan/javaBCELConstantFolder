@@ -31,5 +31,36 @@ public class ConstantVariableFoldingTest {
         assertEquals(true, cvf.methodFour());
     }
     
+    // test int conversions
+    @Test
+    public void testIntMethod1(){
+        assertEquals("Long", ((Object)cvf.intMethod1()).getClass().getSimpleName());
+    }
+
+    @Test
+    public void testIntMethod2(){
+        assertEquals("Float", ((Object)cvf.intMethod2()).getClass().getSimpleName());
+    }
+
+    @Test
+    public void testIntMethod3(){
+        assertEquals("Double", ((Object)cvf.intMethod3()).getClass().getSimpleName());
+    }
+
+    //test long conversion
+    @Test
+    public void testLongMethod1(){
+        assertEquals("Integer", ((Object)cvf.longMethod1()).getClass().getSimpleName());
+    }
+
+    @Test
+    public void testLongMethod2(){
+        assertEquals("Float", ((Object)cvf.longMethod2()).getClass().getSimpleName());
+    }
+
+    @Test
+    public void testLongMethod3(){
+        assertEquals("Double", ((Object)cvf.longMethod3()).getClass().getSimpleName());
+    }
 
 }
