@@ -849,8 +849,10 @@ public class ConstantFolder {
 		do {
 			performedOptimization = false;
 
+			/* FIND ALL JUMP POINTS */
 			jumpManager = initializeJumpManagerWithJumps(il);
 
+			/* REMOVE UNREACHABLE CODE */
 			if(removeUnreachableCode(il, jumpManager)) {
 				performedOptimization = true;
 				jumpManager = initializeJumpManagerWithJumps(il);
