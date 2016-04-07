@@ -272,7 +272,7 @@ public class ConstantFolder {
 
 	ClassParser parser = null;
 	ClassGen gen = null;
-	int debugLevel = 0;
+	int debugLevel = 3;
 
 	JavaClass original = null;
 	JavaClass optimized = null;
@@ -375,6 +375,9 @@ public class ConstantFolder {
 
 					il.setPositions();
 					jumpManager = initializeJumpManagerWithJumps(il);
+
+					debug("Removed unreachable code:", 3);
+					debug(il.toString(), 3);
 				}
 			}
 		}
@@ -637,6 +640,8 @@ public class ConstantFolder {
 
 				if(branch)
 					il.insert(instructions[0], new GOTO(ifInstruction.getTarget()));
+				
+				il.redirectBranches(instructions[0], instructions[2].getNext());
 				try {
 					il.delete(instructions[0], instructions[2]);
 				} catch(TargetLostException e) { }
@@ -691,6 +696,7 @@ public class ConstantFolder {
 					il.insert(instructions[0], new GOTO(ifInstruction.getTarget()));
 				}
 				
+				il.redirectBranches(instructions[0], instructions[1].getNext());
 				try {
 					il.delete(instructions[0], instructions[1]);
 				} catch(TargetLostException e) { }
@@ -714,7 +720,6 @@ public class ConstantFolder {
 					performedOptimization = true;
 					InstructionHandle[] instructions = (InstructionHandle[])itr.next();
 					il.redirectBranches(instructions[0], instructions[1].getNext());
-					il.redirectBranches(instructions[1], instructions[1].getNext());
 					try {
 						il.delete(instructions[0], instructions[1]);
 					} catch(TargetLostException e) { }
@@ -761,6 +766,7 @@ public class ConstantFolder {
 				instructions[0].setInstruction(foldedInstruction);
 
 				// remove stack push instructions
+				il.redirectBranches(instructions[0], instructions[1].getNext());
 				try {
 					il.delete(instructions[1]);
 				} catch(TargetLostException e) { }
@@ -884,12 +890,15 @@ public class ConstantFolder {
 			if(resolveUnaryComparisonBranches(il, cpgen, jumpManager, variableManager))
 				performedOptimization = true;
 
+			debug(il.toString(), 3);
+
 			/* REMOVE UNUSED VARIABLES FROM INSTRUCTION LIST */
 			if(removeUnusedVariables(il, localVariableIndices))
 				performedOptimization = true;
 			
 			il.setPositions();
 
+			debug(il.toString(), 3);
 		} while(performedOptimization);
 
 		debug("__after__", 2);
