@@ -39,7 +39,7 @@ public class ConstantFolder {
 
 		public VariableFinder(int variableIndex, int localVariableInstructionIndex) {
 			this.variableIndex = variableIndex;
-			this.localVariableInstructionIndex = localVariableInstructionIndex;
+			this.localVariableInstructionIndex = localVariableInstructionIndex;						
 		}
 
 		public boolean checkCode(InstructionHandle[] match) {
@@ -220,7 +220,7 @@ public class ConstantFolder {
 				if(range.contains(position))
 					return values.get(index);
 			}
-			return null;
+			return null;			
 		}
 
 		public void setValueAtPosition(Object value, int position) {
@@ -244,7 +244,7 @@ public class ConstantFolder {
 
 	private static class VariableManager {
 		private HashMap<Integer, Variable> variables;
-
+		
 		public VariableManager() {
 			this.variables = new HashMap<Integer, Variable>();
 		}
@@ -300,89 +300,8 @@ public class ConstantFolder {
 		}
 	}
 
-<<<<<<< HEAD
 	private JumpManager initializeJumpManagerWithJumps(InstructionList il) {
 		debug("Finding all jumps", 1);
-=======
-	/*
-	private void simpleFolding() {
-		ClassGen cgen = new ClassGen(original);
-		ConstantPoolGen cpgen = cgen.getConstantPool();
-
-		Method[] methods = cgen.getMethods();
-		Method[] optimizedMethods = new Method[methods.length];
-		for( int index = 0 ; index < methods.length ; index++ ) {
-			Method m = methods[index];
-			MethodGen mg = new MethodGen(m, cgen.getClassName(), cpgen);
-			InstructionList il = mg.getInstructionList();
-
-			while(true) {
-				InstructionFinder finder = new InstructionFinder(il);
-				Iterator itr = finder.search("ldc ldc ArithmeticInstruction");
-
-				if(!itr.hasNext())
-					break;
-
-				while(itr.hasNext()) {
-					InstructionHandle[] instructions = (InstructionHandle[])itr.next();
-
-					// fold constants
-					int foldedConstantIndex = -1;
-					LDC operandAInstruction = (LDC)(instructions[0].getInstruction());
-					Object operandA = operandAInstruction.getValue(cpgen);
-					LDC operandBInstruction = (LDC)(instructions[1].getInstruction());
-					Object operandB = operandBInstruction.getValue(cpgen);
-					switch(instructions[2].getInstruction().getName()) {
-						case "iadd":
-							foldedConstantIndex = cpgen.addInteger((int)operandA + (int)operandB);
-							break;
-						case "fadd":
-							foldedConstantIndex = cpgen.addFloat((float)operandA + (float)operandB);
-							break;
-						case "dadd":
-							foldedConstantIndex = cpgen.addDouble((double)operandA + (double)operandB);
-							break;
-						case "ladd":
-							foldedConstantIndex = cpgen.addLong((long)operandA + (long)operandB);
-							break;
-						case "isub":
-							foldedConstantIndex = cpgen.addInteger((int)operandA - (int)operandB);
-							break;
-						case "fsub":
-							foldedConstantIndex = cpgen.addFloat((float)operandA - (float)operandB);
-							break;
-						case "dsub":
-							foldedConstantIndex = cpgen.addDouble((double)operandA - (double)operandB);
-							break;
-						case "lsub":
-							foldedConstantIndex = cpgen.addLong((long)operandA - (long)operandB);
-							break;
-						case "imul":
-							foldedConstantIndex = cpgen.addInteger((int)operandA * (int)operandB);
-							break;
-						case "fmul":
-							foldedConstantIndex = cpgen.addFloat((float)operandA * (float)operandB);
-							break;
-						case "dmul":
-							foldedConstantIndex = cpgen.addDouble((double)operandA * (double)operandB);
-							break;
-						case "lmul":
-							foldedConstantIndex = cpgen.addLong((long)operandA * (long)operandB);
-							break;
-						case "idiv":
-							foldedConstantIndex = cpgen.addInteger((int)operandA / (int)operandB);
-							break;
-						case "fdiv":
-							foldedConstantIndex = cpgen.addFloat((float)operandA / (float)operandB);
-							break;
-						case "ddiv":
-							foldedConstantIndex = cpgen.addDouble((double)operandA / (double)operandB);
-							break;
-						case "ldiv":
-							foldedConstantIndex = cpgen.addLong((long)operandA / (long)operandB);
-							break;
-					}
->>>>>>> 004d7f89ffc79b235406047d344c6c0ee5286644
 
 		JumpManager jumpManager = new JumpManager();
 		InstructionFinder finder = new InstructionFinder(il);
@@ -784,14 +703,10 @@ public class ConstantFolder {
 				if(branch) {
 					il.insert(instructions[0], new GOTO(ifInstruction.getTarget()));
 				}
-<<<<<<< HEAD
 				
 				try {
 					il.delete(instructions[0], instructions[1]);
 				} catch(TargetLostException e) { }
-=======
-
->>>>>>> 004d7f89ffc79b235406047d344c6c0ee5286644
 			}
 		}
 
@@ -817,34 +732,10 @@ public class ConstantFolder {
 						il.delete(instructions[0], instructions[1]);
 					} catch(TargetLostException e) { }
 				}
-<<<<<<< HEAD
 			}
 		}
 		return performedOptimization;
 	}
-=======
-
-				// System.out.printf("\tlocal variable %d was changed at: %s\n", varIndex, positions);
-
-				ArrayList<Range> ranges = new ArrayList<Range>();
-				Range current = new Range(positions.get(0), positions.get(0));
-				boolean shouldAdd = true;
-				for(int changePosIndex = 1 ; changePosIndex < positions.size() && shouldAdd ; changePosIndex++) {
-					int changePosition = positions.get(changePosIndex);
-					current.setTo(changePosition);
-					ArrayList<Jump> jumpsContaining = jumpManager.jumpsContaining(changePosition);
-					if(jumpsContaining.size() > 0) {
-						int lowestStart = changePosition;
-						for(Jump jump : jumpsContaining) {
-							if(jump.getFrom() < lowestStart)
-								lowestStart = jump.getFrom();
-							if(jump.getTo() < lowestStart)
-								lowestStart = jump.getTo();
-						}
-						current.setTo(lowestStart);
-						shouldAdd = false;
-					}
->>>>>>> 004d7f89ffc79b235406047d344c6c0ee5286644
 
 	// Returns true on optimization, false on no action
 	private boolean foldTypeConversions(InstructionList il, ConstantPoolGen cpgen, JumpManager jumpManager, VariableManager variableManager) {
@@ -923,41 +814,10 @@ public class ConstantFolder {
 				foldedInstruction = new LDC(cpgen.addInteger(-realOperand.intValue()));
 			}
 
-<<<<<<< HEAD
 			// insert new stack push instruction
 			if(foldedInstruction != null) {
 				performedOptimization = true;
 				instructions[0].setInstruction(foldedInstruction);
-=======
-					if(operand == null)
-						continue;
-
-					Number realOperand = (Number)operand;
-					int foldedConstantIndex = -1;
-					Instruction foldedInstruction = null;
-					switch(conversionInstruction.getName()) {
-						case "d2f":
-						case "i2f":
-						case "l2f":
-							foldedInstruction = new LDC(cpgen.addFloat(realOperand.floatValue()));
-							break;
-						case "i2d":
-						case "l2d":
-						case "f2d":
-							foldedInstruction = new LDC2_W(cpgen.addDouble(realOperand.doubleValue()));
-							break;
-						case "d2l":
-						case "f2l":
-						case "i2l":
-							foldedInstruction = new LDC2_W(cpgen.addLong(realOperand.longValue()));
-							break;
-						case "d2i":
-						case "f2i":
-						case "l2i":
-							foldedInstruction = new LDC(cpgen.addInteger(realOperand.intValue()));
-							break;
-					}
->>>>>>> 004d7f89ffc79b235406047d344c6c0ee5286644
 
 				// remove stack push instructions
 				try {
@@ -970,76 +830,10 @@ public class ConstantFolder {
 		return performedOptimization;
 	}
 
-<<<<<<< HEAD
 	private Method optimizeMethod(ClassGen cgen, Method m) {
 		ConstantPoolGen cpgen = cgen.getConstantPool();
 		MethodGen mg = new MethodGen(m, cgen.getClassName(), cpgen);
 		mg.removeNOPs();
-=======
-				/* PERFORM NEGATIONS */
-				finder = new InstructionFinder(il);
-				itr = finder.search("PushInstruction ArithmeticInstruction");
-				while(itr.hasNext()) {
-					InstructionHandle[] instructions = (InstructionHandle[])itr.next();
-
-					if(jumpManager.destinationsContain(instructions[1].getPosition())) {
-						System.out.println("Skipping 'PushInstruction ArithmeticInstruction' match across jump destination");
-						continue;
-					}
-
-					PushInstruction pushInstruction = (PushInstruction)instructions[0].getInstruction();
-					ArithmeticInstruction arithmeticInstruction = (ArithmeticInstruction)instructions[1].getInstruction();
-					Object operand = null;
-
-					if(pushInstruction instanceof LDC) {
-						LDC loadConstantInstruction = (LDC)pushInstruction;
-						operand = loadConstantInstruction.getValue(cpgen);
-					} else if(pushInstruction instanceof LDC2_W) {
-						LDC2_W loadConstantInstruction = (LDC2_W)pushInstruction;
-						operand = loadConstantInstruction.getValue(cpgen);
-					} else if(pushInstruction instanceof ConstantPushInstruction) {
-						ConstantPushInstruction constantPushInstruction = (ConstantPushInstruction)pushInstruction;
-						operand = constantPushInstruction.getValue();
-					} else if(pushInstruction instanceof LoadInstruction) {
-						LoadInstruction loadInstruction = (LoadInstruction)pushInstruction;
-						Object value = variableManager.variableValueAtPosition(loadInstruction.getIndex(), instructions[0].getPosition());
-						if(value instanceof Object)
-							operand = value;
-					}
-
-					if(operand == null)
-						continue;
-
-					Number realOperand = (Number)operand;
-					int foldedConstantIndex = -1;
-					Instruction foldedInstruction = null;
-					switch(arithmeticInstruction.getName()) {
-						case "fneg":
-							foldedInstruction = new LDC(cpgen.addFloat(-realOperand.floatValue()));
-							break;
-						case "dneg":
-							foldedInstruction = new LDC2_W(cpgen.addDouble(-realOperand.doubleValue()));
-							break;
-						case "lneg":
-							foldedInstruction = new LDC2_W(cpgen.addLong(-realOperand.longValue()));
-							break;
-						case "ineg":
-							foldedInstruction = new LDC(cpgen.addInteger(-realOperand.intValue()));
-							break;
-					}
-
-					// insert new stack push instruction
-					if(foldedInstruction != null) {
-						performedOptimization = true;
-						instructions[0].setInstruction(foldedInstruction);
-
-						// remove stack push instructions
-						try {
-							il.delete(instructions[1]);
-						} catch(TargetLostException e) { }
-					}
-				}
->>>>>>> 004d7f89ffc79b235406047d344c6c0ee5286644
 
 		InstructionList il = mg.getInstructionList();
 
@@ -1068,7 +862,6 @@ public class ConstantFolder {
 			/* DETERMINE CONSTANT SECTIONS OF VARIABLE */
 			variableManager = initializeVariableManagerWithConstantSections(il, jumpManager, localVariableIndices);
 
-<<<<<<< HEAD
 			/* ALL FOLDING */
 			boolean performedFolding;
 			do {
@@ -1077,197 +870,6 @@ public class ConstantFolder {
 
 				/* UPDATE CONSTANT VARIABLES VALUES */
 				updateVariableValues(il, cpgen, jumpManager, variableManager);
-=======
-						// remove stack push instructions
-						try {
-							il.delete(instructions[1]);
-							il.delete(instructions[2]);
-						} catch(TargetLostException e) { }
-					}
-				}
-
-				/* PERFORM INTEGER IF FOLDING */
-				finder = new InstructionFinder(il);
-				itr = finder.search("PushInstruction PushInstruction IfInstruction");
-				while(itr.hasNext()) {
-					InstructionHandle[] instructions = (InstructionHandle[])itr.next();
-
-					/* // debug print
-					for(InstructionHandle i : instructions )
-						System.out.println(i); */
-
-					if(jumpManager.destinationsContain(new int[]{instructions[1].getPosition(), instructions[2].getPosition()})) {
-						System.out.println("Skipping 'PushInstruction PushInstruction IfInstruction' match across jump destination");
-						continue;
-					}
-
-					Object[] operands = new Object[]{null, null};
-					boolean isConstantFolding = true;
-					for( int j = 0 ; j < 2 ; j++ ) {
-						// iterate over two push instructions
-						PushInstruction pushInstruction = (PushInstruction)instructions[j].getInstruction();
-						if(pushInstruction instanceof LDC) {
-							LDC loadConstantInstruction = (LDC)pushInstruction;
-							operands[j] = loadConstantInstruction.getValue(cpgen);
-						} else if(pushInstruction instanceof LDC2_W) {
-							LDC2_W loadConstantInstruction = (LDC2_W)pushInstruction;
-							operands[j] = loadConstantInstruction.getValue(cpgen);
-						} else if(pushInstruction instanceof ConstantPushInstruction) {
-							ConstantPushInstruction constantPushInstruction = (ConstantPushInstruction)pushInstruction;
-							operands[j] = constantPushInstruction.getValue();
-						} else if(pushInstruction instanceof LoadInstruction) {
-							LoadInstruction loadInstruction = (LoadInstruction)pushInstruction;
-							Object value = variableManager.variableValueAtPosition(loadInstruction.getIndex(), instructions[j].getPosition());
-							if(value instanceof Object)
-								operands[j] = value;
-						}
-					}
-
-					if(operands[0] == null || operands[1] == null)
-						continue;
-
-					Number operandA = (Number)operands[0];
-					Number operandB = (Number)operands[1];
-
-					Instruction foldedInstruction = null;
-					int foldedConstantIndex = -1;
-					switch(instructions[2].getInstruction().getName()) {
-						case "if_icmpeq":
-							foldedInstruction = new ICONST(operandA.intValue() == operandB.intValue() ? 1 : 0);
-							break;
-						case "if_icmpge":
-							foldedInstruction = new ICONST(operandA.intValue() >= operandB.intValue() ? 1 : 0);
-							break;
-						case "if_icmpgt":
-							foldedInstruction = new ICONST(operandA.intValue() > operandB.intValue() ? 1 : 0);
-							break;
-						case "if_icmple":
-							foldedInstruction = new ICONST(operandA.intValue() <= operandB.intValue() ? 1 : 0);
-							break;
-						case "if_icmplt":
-							foldedInstruction = new ICONST(operandA.intValue() < operandB.intValue() ? 1 : 0);
-							break;
-						case "if_icmpne":
-							foldedInstruction = new ICONST(operandA.intValue() != operandB.intValue() ? 1 : 0);
-							break;
-					}
-
-					Instruction ifInstruction = instructions[2].getInstruction();
-					BranchInstruction branchInstruction = (BranchInstruction)ifInstruction;
-					InstructionHandle target = branchInstruction.getTarget();
-					IFGT foldedIfInstruction = new IFGT(target);
-
-					// insert new stack push instruction
-					if(foldedInstruction != null) {
-						performedOptimization = true;
-						instructions[0].setInstruction(foldedInstruction);
-
-						try {
-							il.delete(instructions[1]);
-						} catch(TargetLostException e) { }
-
-						il.append(instructions[0], foldedIfInstruction);
-
-						// remove stack push instructions
-						try {
-							il.delete(instructions[2]);
-						} catch(TargetLostException e) { }
-					}
-				}
-
-				/* PERFORM CMP FOLDING */
-				finder = new InstructionFinder(il);
-				itr = finder.search("PushInstruction PushInstruction (DCMPG|DCMPL|FCMPG|FCMPL|LCMP)");
-				while(itr.hasNext()) {
-					InstructionHandle[] instructions = (InstructionHandle[])itr.next();
-
-					/* // debug print
-					for(InstructionHandle i : instructions )
-						System.out.println(i); */
-
-					if(jumpManager.destinationsContain(new int[]{instructions[1].getPosition(), instructions[2].getPosition()})) {
-						System.out.println("Skipping 'PushInstruction PushInstruction (DCMPG|DCMPL|FCMPG|FCMPL|LCMP)' match across jump destination");
-						continue;
-					}
-
-					Object[] operands = new Object[]{null, null};
-					boolean isConstantFolding = true;
-					for( int j = 0 ; j < 2 ; j++ ) {
-						// iterate over two push instructions
-						PushInstruction pushInstruction = (PushInstruction)instructions[j].getInstruction();
-						if(pushInstruction instanceof LDC) {
-							LDC loadConstantInstruction = (LDC)pushInstruction;
-							operands[j] = loadConstantInstruction.getValue(cpgen);
-						} else if(pushInstruction instanceof LDC2_W) {
-							LDC2_W loadConstantInstruction = (LDC2_W)pushInstruction;
-							operands[j] = loadConstantInstruction.getValue(cpgen);
-						} else if(pushInstruction instanceof ConstantPushInstruction) {
-							ConstantPushInstruction constantPushInstruction = (ConstantPushInstruction)pushInstruction;
-							operands[j] = constantPushInstruction.getValue();
-						} else if(pushInstruction instanceof LoadInstruction) {
-							LoadInstruction loadInstruction = (LoadInstruction)pushInstruction;
-							Object value = variableManager.variableValueAtPosition(loadInstruction.getIndex(), instructions[j].getPosition());
-							if(value instanceof Object)
-								operands[j] = value;
-						}
-					}
-
-					if(operands[0] == null || operands[1] == null)
-						continue;
-
-					Number operandA = (Number)operands[0];
-					Number operandB = (Number)operands[1];
-
-					Instruction foldedInstruction = null;
-					int foldedConstantIndex = -1;
-					switch(instructions[2].getInstruction().getName()) {
-						case "dcmpg":
-							Double doubleOperandA = new Double(operandA.doubleValue());
-							Double doubleOperandB = new Double(operandB.doubleValue());
-							foldedInstruction = new ICONST(doubleOperandA.compareTo(doubleOperandB));
-							break;
-						case "dcmpl":
-							Double doubleOperandA1 = new Double(operandA.doubleValue());
-							Double doubleOperandB1 = new Double(operandB.doubleValue());
-							foldedInstruction = new ICONST(-doubleOperandA1.compareTo(doubleOperandB1));
-							break;
-						case "fcmpg":
-							Float floatOperandA = new Float(operandA.floatValue());
-							Float floatOperandB = new Float(operandB.floatValue());
-							foldedInstruction = new ICONST(floatOperandA.compareTo(floatOperandB));
-							break;
-						case "fcmpl":
-							Float floatOperandA1 = new Float(operandA.floatValue());
-							Float floatOperandB1 = new Float(operandB.floatValue());
-							foldedInstruction = new ICONST(-floatOperandA1.compareTo(floatOperandB1));
-							break;
-						case "lcmp":
-							Long longOperandA = new Long(operandA.longValue());
-							Long longOperandB = new Long(operandB.longValue());
-							foldedInstruction = new ICONST(longOperandA.compareTo(longOperandB));
-							break;
-					}
-
-					// insert new stack push instruction
-					if(foldedInstruction != null) {
-						performedOptimization = true;
-						instructions[0].setInstruction(foldedInstruction);
-
-						// remove stack push instructions
-						try {
-							il.delete(instructions[1]);
-							il.delete(instructions[2]);
-						} catch(TargetLostException e) { }
-					}
-				}
-
-			} while(performedOptimization);
-
-			System.out.printf("METHOD %s\n", mg.getName());
-			System.out.println(cpgen);
-			System.out.println("__after__");
-			System.out.println(il);
->>>>>>> 004d7f89ffc79b235406047d344c6c0ee5286644
 
 				/* PERFORM TYPE CONVERSIONS */
 				if(foldTypeConversions(il, cpgen, jumpManager, variableManager))
