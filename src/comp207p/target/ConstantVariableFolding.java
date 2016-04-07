@@ -165,7 +165,7 @@ public class ConstantVariableFolding
         return y;
     }
 
-    //test comparisons() and if statements
+    //test comparisons() and if statements -- int 
     public boolean comparison1(){
         int a = 15;
         int b = 1;
@@ -187,6 +187,54 @@ public class ConstantVariableFolding
             return x == y;
         else 
             return x < y;
+
+    }
+
+       //test comparisons() and if statements -- double 
+    public boolean comparison2(){
+        double a = 15;
+        double b = 1;
+        double c = 1;
+        double x;
+        double y;
+
+        if(a < b)
+            x = 10;
+        else
+            x = 30;
+
+        if(b == c)
+            y = 30;
+        else 
+            y = 5;
+
+        if(a > b && x >= y)
+            return x == y;
+        else 
+            return x < y;
+
+    }
+
+
+    //test negations
+    public boolean negation1(){
+        int a = 3;
+        int b = 4;
+        int c = 5;
+        int x;
+        int y;
+
+        if(a != b)
+            x = 10;
+        else
+            x = 5;
+
+        if(!(b < c))
+            y = 30;
+        else 
+            y = 10;
+
+        return !(x != y);
 
     }
 
