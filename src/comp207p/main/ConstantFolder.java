@@ -435,24 +435,27 @@ public class ConstantFolder {
 	private Object getValueOfPushInstruction(InstructionHandle instruction, ConstantPoolGen cpgen, VariableManager variableManager) {
 		PushInstruction pushInstruction = (PushInstruction)instruction.getInstruction();
 		int position = instruction.getPosition();
+		
+		Object value = null;
 		if(pushInstruction instanceof ConstantPushInstruction) {
 			ConstantPushInstruction constantPushInstruction = (ConstantPushInstruction)pushInstruction;
-			return constantPushInstruction.getValue();
+			value = constantPushInstruction.getValue();
 		} else if(pushInstruction instanceof LoadInstruction) {
 			LoadInstruction loadInstruction = (LoadInstruction)pushInstruction;
 			int variableIndex = loadInstruction.getIndex();
-			Object value = variableManager.variableValueAtPosition(variableIndex, position);
-			if(value instanceof Number)
-				return value;
+			value = variableManager.variableValueAtPosition(variableIndex, position);
 		} else if(pushInstruction instanceof LDC) {
 			LDC constantLoadInstruction = (LDC)pushInstruction;
-			return constantLoadInstruction.getValue(cpgen);
+			value = constantLoadInstruction.getValue(cpgen);
 		} else if(pushInstruction instanceof LDC2_W) {
 			LDC2_W constantLoadInstruction = (LDC2_W)pushInstruction;
-			return constantLoadInstruction.getValue(cpgen);
+			value = constantLoadInstruction.getValue(cpgen);
 		}
 
-		return null;
+		if(value instanceof Number)
+			return value;
+		else
+			return null;
 	}
 
 	private void updateVariableValues(InstructionList il, ConstantPoolGen cpgen, JumpManager jumpManager, VariableManager variableManager) {
