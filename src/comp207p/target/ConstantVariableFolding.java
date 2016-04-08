@@ -356,6 +356,59 @@ public class ConstantVariableFolding
         }
         return res;
     }
+
+    public int parameters(int a, boolean b, double d){
+        if(b == true)
+            a = a * 2;
+        return a + (int)d;
+    }
+
+    private int auxilary(int i){
+        return i + 20;
+    }
+
+    public int privateMethod(){
+        int a = 20;
+        int b = 10;
+        int c = auxilary(a);
+        int d = auxilary(b);
+
+        return c + d;
+    }
+
+    private int i = 200;
+    private float f = (float)10;
+    private String s = "hello";
+
+    public float instanceVariable(){
+        i = 1;
+        f = (float)2;
+        if(s == "hello")
+            return i + f;
+        return 0;
+    }
+
+    //inner class test
+    private class Tire {
+        private double radius;
+        public Tire(double radius) {
+          this.radius = radius;
+        }
+        public double getRadius() {
+          return radius;
+        }
+        public void changeRadius(double change){
+            radius = radius + change;
+        }
+    }
+
+    public double innerClass(){
+        Tire tire = new Tire(200);
+        tire.changeRadius(200);
+        double radius = tire.getRadius();
+        return radius;
+    }
 }
+
 
 

@@ -160,14 +160,30 @@ public class ConstantVariableFoldingTest {
         assertEquals(22, cvf.nestedLooping());
     }
 
-    // @Test 
-    // public void testcaseStatement(){
-    //     assertEquals("four", cvf.caseStatement());
-    // }
+    @Test 
+    public void testcaseStatement(){
+        assertEquals("four", cvf.caseStatement());
+    }
 
+    @Test 
+    public void testParameters(){
+        assertEquals(20, cvf.parameters(5, true, 10.7));
+    }
 
+    @Test 
+    public void testPrivateMethod(){
+        assertEquals(70, cvf.privateMethod());
+    }
 
+    @Test 
+    public void testInstanceVariable(){
+        assertEquals(3, cvf.instanceVariable(), 0.0000001);
+    }
 
+    @Test 
+    public void testInnerClass(){
+        assertEquals(400, cvf.innerClass(), 0.0000001);
+    }
 
 
 }
