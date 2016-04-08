@@ -272,7 +272,7 @@ public class ConstantFolder {
 
 	ClassParser parser = null;
 	ClassGen gen = null;
-	int debugLevel = 3;
+	int debugLevel = 0;
 
 	JavaClass original = null;
 	JavaClass optimized = null;
